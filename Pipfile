@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+ray = {extras = ["rllib", "tune"], version = "*"}
+torch = "*"
+tensorflow = "*"
+gym = {extras = ["accept-rom-license"], version = "*"}
+atari-py = "*"
+gym-conservation = "*"
+seaborn = "*"
+
+[dev-packages]
+ipykernel = "*"
+
+[requires]
+python_version = "3.7"
