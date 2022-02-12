@@ -11,6 +11,7 @@ gym = {extras = ["accept-rom-license"], version = "*"}
 atari-py = "*"
 gym-conservation = "*"
 seaborn = "*"
+stable-baselines3 = "*"
 
 [dev-packages]
 ipykernel = "*"
