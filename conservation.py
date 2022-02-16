@@ -8,6 +8,9 @@ from ray.rllib import agents
 torch.cuda.device_count()
 
 
+tune.register_env("conservation-v6", lambda config: NonStationaryV6(config))
+tune.register_env("fishing-v1", lambda config: gym_fishing.envs.FishingCtsEnv(config))
+
 # Custom environment creator utility
 def env_creator(env_name):
     if env_name == 'fishing-v1':
@@ -62,15 +65,15 @@ config = {
 }
 
 # Create our RLlib Trainer.
-trainer = agents.a3c.a2c.A2CTrainer(config=config)
+# trainer = agents.a3c.a2c.A2CTrainer(config=config)
 #trainer = agents.ddpg.apex.ApexDDPGTrainer(config=config)
 #trainer = agents.ppo.APPOTrainer(config=config)
 
 #trainer = impala.ImpalaTrainer(config=config)
 
 
-for _ in range(10):
+for _ in range(4):
     trainer.train()
 
-trainer.evaluate()
-
+out = trainer.evaluate() 
+print(out)

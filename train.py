@@ -56,13 +56,13 @@ parser.add_argument(
     "be achieved within --stop-timesteps AND --stop-iters.",
 )
 parser.add_argument(
-    "--stop-iters", type=int, default=50, help="Number of iterations to train."
+    "--stop-iters", type=int, default=500, help="Number of iterations to train."
 )
 parser.add_argument(
-    "--stop-timesteps", type=int, default=100000, help="Number of timesteps to train."
+    "--stop-timesteps", type=int, default=300000, help="Number of timesteps to train."
 )
 parser.add_argument(
-    "--stop-reward", type=float, default=7, help="Reward at which we stop training."
+    "--stop-reward", type=float, default=150, help="Reward at which we stop training."
 )
 parser.add_argument(
     "--local-mode",
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
 
     config = {
-        "env": "fishing-v1",
+        "env": "conservation-v6",
         # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
         "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
         "num_workers": 2,  # parallelism
