@@ -1,30 +1,23 @@
 """
-Example of a custom gym environment and model. Run this for a demo.
-
-This example shows:
-  - using a custom environment
-  - using a custom model
-  - using Tune for grid search to try different learning rates
+Example grid search tuning for some of our custom gym environments
 
 You can visualize experiment results in ~/ray_results using TensorBoard.
 
-Run example with defaults:
-$ python custom_env.py
+Run example :
+$ python train.py --run TD3
+
 For CLI options:
 $ python custom_env.py --help
 """
 import argparse
 import gym
-from gym.spaces import Discrete, Box
 import numpy as np
 import os
-import random
 
 import ray
 from ray import tune
 from ray.rllib.agents import ppo
 from ray.rllib.env.env_context import EnvContext
-from ray.rllib.utils.framework import try_import_tf, try_import_torch
 from ray.rllib.utils.test_utils import check_learning_achieved
 from ray.tune.logger import pretty_print
 
@@ -34,21 +27,20 @@ import gym_fishing
 ## rllib ignores gym registered names, need to register manually:
 ## note these envs were not written to take a single parameter dictionary ("config")
 tune.register_env("conservation-v6", lambda config: gym_conservation.envs.NonStationaryV6())
+tune.register_env("conservation-v5", lambda config: gym_conservation.envs.NonStationaryV5())
+tune.register_env("fishing-v0", lambda config: gym_fishing.envs.FishingEnv())
 tune.register_env("fishing-v1", lambda config: gym_fishing.envs.FishingCtsEnv())
 
-from gym_conservation.envs import NonStationaryV6
-from gym_fishing import envs as fishing
 
 os.environ["RLLIB_NUM_GPUS"] = "1"
-
-tf1, tf, tfv = try_import_tf()
-torch, nn = try_import_torch()
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--run", type=str, default="PPO", help="The RLlib-registered algorithm to use."
 )
-
+parser.add_argument(
+    "--env", type=str, default="fishing-v1", help="The gym environment to use."
+)
 parser.add_argument(
     "--as-test",
     action="store_true",
@@ -78,7 +70,7 @@ if __name__ == "__main__":
 
 
     config = {
-        "env": "conservation-v6",
+        "env": args.env,
         # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
         "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
         "num_workers": 2,  # parallelism
