@@ -34,6 +34,9 @@ tune.register_env("fishing-v1", lambda config: gym_fishing.envs.FishingCtsEnv())
 
 os.environ["RLLIB_NUM_GPUS"] = "1"
 
+## Possible bug, as --shm-size is already large!
+os.environ["RAY_OBJECT_STORE_ALLOW_SLOW_STORAGE"] = "1"
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--run", type=str, default="PPO", help="The RLlib-registered algorithm to use."
@@ -48,7 +51,7 @@ parser.add_argument(
     "be achieved within --stop-timesteps AND --stop-iters.",
 )
 parser.add_argument(
-    "--stop-iters", type=int, default=500, help="Number of iterations to train."
+    "--stop-iters", type=int, default=10000, help="Number of iterations to train."
 )
 parser.add_argument(
     "--stop-timesteps", type=int, default=3000000, help="Number of timesteps to train."
@@ -72,12 +75,16 @@ if __name__ == "__main__":
     config = {
         ## parameters to tune: BE SURE TO MATCH THESE TO ALGO
         ## PPO
-         "lr": tune.loguniform(1e-5, 1e-2),
-         "vf_clip_param": tune.uniform(10, 100),
+        "lr": tune.loguniform(1e-5, 1e-2),
+        "vf_clip_param": tune.uniform(10, 100),
+        "gamma": tune.choice([0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 0.9999]),
+        "entropy_coeff" : tune.loguniform(0.00000001, 0.1),
+        "clip_param": tune.choice([0.1, 0.2, 0.3, 0.4]),
+        "lambda": tune.choice([0.8, 0.9, 0.92, 0.95, 0.98, 0.99, 1.0]),
         ## Fixed config settings: not tuned
         "env": args.env,
         "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
-        "num_workers": 2,  # parallelism
+        "num_workers": 4,  # parallelism
         "framework": "torch",
     }
 
@@ -88,7 +95,7 @@ if __name__ == "__main__":
     }
     # automated run with Tune and grid search and TensorBoard
     print("Training automatically with Ray Tune")
-    results = tune.run(args.run, config=config, stop=stop)
+    results = tune.run(args.run, config=config, stop=stop, checkpoint_at_end=True)
 
     if args.as_test:
         print("Checking if learning goals were achieved")
