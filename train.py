@@ -51,10 +51,10 @@ parser.add_argument(
     "--stop-iters", type=int, default=500, help="Number of iterations to train."
 )
 parser.add_argument(
-    "--stop-timesteps", type=int, default=300000, help="Number of timesteps to train."
+    "--stop-timesteps", type=int, default=3000000, help="Number of timesteps to train."
 )
 parser.add_argument(
-    "--stop-reward", type=float, default=150, help="Reward at which we stop training."
+    "--stop-reward", type=float, default=200, help="Reward at which we stop training."
 )
 parser.add_argument(
     "--local-mode",
@@ -70,8 +70,12 @@ if __name__ == "__main__":
 
 
     config = {
+        ## parameters to tune: BE SURE TO MATCH THESE TO ALGO
+        ## PPO
+         "lr": tune.loguniform(1e-5, 1e-2),
+         "vf_clip_param": tune.uniform(10, 100),
+        ## Fixed config settings: not tuned
         "env": args.env,
-        # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
         "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")),
         "num_workers": 2,  # parallelism
         "framework": "torch",
