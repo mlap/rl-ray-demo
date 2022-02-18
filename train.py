@@ -20,6 +20,8 @@ from ray.rllib.agents import ppo
 from ray.rllib.env.env_context import EnvContext
 from ray.rllib.utils.test_utils import check_learning_achieved
 from ray.tune.logger import pretty_print
+from ray.tune.suggest.hyperopt import HyperOptSearch
+from ray.tune.schedulers import AsyncHyperBandScheduler
 
 import gym_conservation
 import gym_fishing
@@ -51,10 +53,10 @@ parser.add_argument(
     "be achieved within --stop-timesteps AND --stop-iters.",
 )
 parser.add_argument(
-    "--stop-iters", type=int, default=10000, help="Number of iterations to train."
+    "--stop-iters", type=int, default=300000, help="Number of iterations to train."
 )
 parser.add_argument(
-    "--stop-timesteps", type=int, default=3000000, help="Number of timesteps to train."
+    "--stop-timesteps", type=int, default=200000000, help="Number of timesteps to train."
 )
 parser.add_argument(
     "--stop-reward", type=float, default=200, help="Reward at which we stop training."
@@ -88,6 +90,9 @@ if __name__ == "__main__":
         "framework": "torch",
     }
 
+    scheduler = AsyncHyperBandScheduler(metric="episode_reward_mean", mode="max", grace_period=5, max_t=100)
+    hyperopt_search = HyperOptSearch(metric="episode_reward_mean", mode="max")
+
     stop = {
         "training_iteration": args.stop_iters,
         "timesteps_total": args.stop_timesteps,
@@ -95,7 +100,14 @@ if __name__ == "__main__":
     }
     # automated run with Tune and grid search and TensorBoard
     print("Training automatically with Ray Tune")
-    results = tune.run(args.run, config=config, stop=stop, checkpoint_at_end=True)
+    results = tune.run(args.run, 
+                       config=config,
+                       num_samples= 10000,
+                       stop=stop, 
+                       checkpoint_at_end=True, 
+                       search_alg = hyperopt_search,
+                       scheduler=scheduler
+                      )
 
     if args.as_test:
         print("Checking if learning goals were achieved")
